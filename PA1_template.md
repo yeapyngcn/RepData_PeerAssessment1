@@ -14,19 +14,22 @@ This assignment makes use of data from a personal activity monitoring device. Th
 
 ## Loading and preprocessing the data
 Preparing the environment and loading the downloaded data.
-```{r}
+
+```r
 setwd("~/Downloads/Data_Scientist")
 library(data.table)
 dt <- read.csv2("activity.csv", header = TRUE, sep = ",", as.is=TRUE)
 ```
 Processing and transforming the date column to the right format.
-```{r}
+
+```r
 dt$date <- strptime(dt[,"date"], "%Y-%m-%d")
 ```
 
 ## What is mean total number of steps taken per day?
 Histogram of the total number of steps taken each day:
-```{r, fig.height=4, fig.width=4}
+
+```r
 library(plyr)
 cdata <- ddply(dt, "date", summarise, N = sum(steps))
 mean = mean(cdata[, "N"], na.rm=TRUE)
@@ -35,28 +38,38 @@ median = median(cdata[, "N"], na.rm=TRUE)
 hist(cdata[,"N"], main="Total Steps Distribution", xlab = "steps")
 ```
 
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
+
 The **mean** and **median** total number of steps taken each day are:
-- mean: `r mean`
-- median: `r median`
+- mean: 1.0766 &times; 10<sup>4</sup>
+- median: 10765
 
 ## What is the average daily activity pattern?
 Time series plot of the 5-minute interval and the average number of steps taken, averaged across all days:
-```{r, fig.height=4, fig.width=4}
+
+```r
 cdata2 <- ddply(dt, "interval", summarise, avg = mean(steps, na.rm=TRUE))
 plot(cdata2[, "interval"], cdata2[, "avg"], type="l", xlab = "interval", ylab = "average steps", main = "Average steps by interval")
+```
+
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
+
+```r
 max_avg <- max(cdata2[, "avg"])
 max_interval <- cdata2[order(cdata2[,"avg"],decreasing=T)[1], "interval"]
 ```
-The interval: `r max_interval` contains the maximum number of average steps of: `r max_avg`.
+The interval: 835 contains the maximum number of average steps of: 206.1698.
 
 ## Imputing missing values
-```{r}
+
+```r
 NA_total <- sum(is.na(dt[, "steps"]))
 ```
-There are a couple of days/intervals where values are missing and this can introduce bias to the data analysis. Within the dataset, there are in total **`r NA_total` missing values** present.
+There are a couple of days/intervals where values are missing and this can introduce bias to the data analysis. Within the dataset, there are in total **2304 missing values** present.
 
 A new dataset is created by eliminiating the missing values using the average total steps per interval as calcualted above. The average number is also rounded to the nearest integer.
-```{r}
+
+```r
 for(i in 1:length(dt[, "steps"])){
     if(is.na(dt[i, "steps"])){
         int <- dt[i, "interval"]
@@ -69,11 +82,15 @@ for(i in 1:length(dt[, "steps"])){
 cdata_new <- ddply(dt, "date", summarise, N = sum(steps_new))
 ```
 Histogram of the total number of steps taken each day using the new dataset:
-```{r, fig.height=4, fig.width=4}
+
+```r
 hist(cdata_new[,"N"], main="Total Steps Distribution", xlab = "steps")
 ```
+
+![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7.png) 
 The table below summarises the differences in mean and median:
-```{r}
+
+```r
 mean_new = mean(cdata_new[, "N"])
 median_new = median(cdata_new[, "N"])
 ## sum_data <- data.frame(c(mean, median), c(mean_new, median_new), row.names=c("mean", "median"))
@@ -81,11 +98,12 @@ median_new = median(cdata_new[, "N"])
 ```
 Row Names | Old Data | New Data
 --------- | -------- | --------
-Mean | `r mean` | `r mean_new`
-Median | `r median` | `r median_new`
+Mean | 1.0766 &times; 10<sup>4</sup> | 1.0766 &times; 10<sup>4</sup>
+Median | 10765 | 1.0762 &times; 10<sup>4</sup>
 
 ## Are there differences in activity patterns between weekdays and weekends?
-```{r}
+
+```r
 for(i in 1:length(dt[, "steps"])){
     if(as.POSIXlt(dt[i, "date"])$wday<6){
         dt$day[i] <- "weekday"
@@ -98,10 +116,13 @@ dt$date <- as.character(dt$date)
 cdata_wday <- ddply(dt, .(day, interval), summarize, avg = mean(steps_new))
 ```
 Below is a panel plot of the 5-minute interval and the time series of average number of steps taken across all weekday days or weekend days.
-```{r, fig.height=4, fig.width=4}
+
+```r
 par(mfrow=c(2,1))
 par(mar=c(4,4,1,2))
 plot(cdata_wday[cdata_wday$day=="weekend", "interval"], cdata_wday[cdata_wday$day=="weekend", "avg"], type="l", xlab = "", ylab = "average steps", main = "Weekend", col="blue")
 par(mar=c(4,4,1,2))
 plot(cdata_wday[cdata_wday$day=="weekday", "interval"], cdata_wday[cdata_wday$day=="weekday", "avg"], type="l", xlab = "interval", ylab = "average steps", main = "Weekday", col="blue")
 ```
+
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10.png) 
