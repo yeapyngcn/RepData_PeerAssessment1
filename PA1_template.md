@@ -118,11 +118,9 @@ cdata_wday <- ddply(dt, .(day, interval), summarize, avg = mean(steps_new))
 Below is a panel plot of the 5-minute interval and the time series of average number of steps taken across all weekday days or weekend days.
 
 ```r
-par(mfrow=c(2,1))
-par(mar=c(4,4,1,2))
-plot(cdata_wday[cdata_wday$day=="weekend", "interval"], cdata_wday[cdata_wday$day=="weekend", "avg"], type="l", xlab = "", ylab = "average steps", main = "Weekend", col="blue")
-par(mar=c(4,4,1,2))
-plot(cdata_wday[cdata_wday$day=="weekday", "interval"], cdata_wday[cdata_wday$day=="weekday", "avg"], type="l", xlab = "interval", ylab = "average steps", main = "Weekday", col="blue")
+library(lattice)
+cdata_wday <- transform(cdata_wday, day = factor(day))
+xyplot(avg ~ interval | day, data = cdata_wday, layout = c(1,2), type = "l", xlab = "Interval", ylab = "Number of steps")
 ```
 
 ![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10.png) 
